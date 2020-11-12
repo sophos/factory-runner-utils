@@ -351,3 +351,5 @@ MigrationBackup/
 
 # Custom
 config.json
+workspace
+logs

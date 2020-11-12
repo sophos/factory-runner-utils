@@ -8,7 +8,10 @@ WORKDIR /opt/runner-agent
 ENV LANG en_US.utf8
 ENV LC_ALL en_US.utf8
 
+# Create runtime user
 RUN useradd -U -m runner-agent
+
+# Install dnf packages
 RUN dnf install -y gcc openssh openssh-clients git ca-certificates wget unzip which jq python3-pip python3-devel
 
 # Alias python and pip
@@ -21,13 +24,12 @@ RUN bash -c pyenv/plugins/python-build/install.sh
 
 # Upgrade pip
 RUN pip install --upgrade pip
+
+# Install pip packages
 RUN pip install setuptools==44.1.1 wheel==0.34.2
-RUN pip install packaging virtualenv python-daemon jmespath apache-libcloud==2.*
+RUN pip install packaging virtualenv python-daemon
 
-# Install node.js
-RUN curl -sL https://rpm.nodesource.com/setup_12.x | bash - && \
-	dnf install -y nodejs
-
+# Install utilities for tool installers
 # https://github.com/pyenv/pyenv/wiki
 RUN dnf install -y @development zlib-devel bzip2-devel readline-devel sqlite \
     sqlite-devel openssl-devel xz xz-devel libffi-devel findutils
