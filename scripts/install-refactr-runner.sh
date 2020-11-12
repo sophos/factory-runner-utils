@@ -39,7 +39,7 @@ set -u #Treat unset variables as an error when performing parameter expansion.
 exec 1>&2 # Let's display everything on stderr.
 
 SVC_NAME="refactr-runner"
-SVC_DESCRIPTION="Refacr Runner Agent"
+SVC_DESCRIPTION="Refactr Runner Agent"
 RELEASE="1.71.0"
 UNAME=$(uname)
 INSTALLER_URL="https://refactrreleases.blob.core.windows.net/public/runner/runner-agent_linux-x64_1.77.4.exe"
@@ -139,7 +139,7 @@ chmod ou=rw $UNIT_PATH
 
 cat <<EOF > $UNIT_PATH
 [Unit]
-Description = Refacr Runner Agent
+Description = Refactr Runner Agent
 After = NetworkManager.service
 
 [Service]
