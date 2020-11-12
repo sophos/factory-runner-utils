@@ -4,7 +4,7 @@ This repository hosts various utilities for executing self-hosted Refactr runner
 
 ## Runner Agent Dockerfile
 
-The Dockerfile can be used to build your own runner agents Docker image. It is meant to be a reasonable base image to start from when building a custom runner.
+The Dockerfile can be used to build your own runner agent Docker image. It is meant to be a reasonable base image to start from when building a custom runner.
 
 While it includes healthy set of OS packages, CLI tools, and Python libraries, it does not contain all tools necessary to run all aspects of every tool supported by the Refactr Platform. For example, many supported tools require extra dependencies to use plugins or modules (e.g., Ansible). In most cases, it's recommended to install these extra dependencies as part of your pipelines, however there are some scenarios where it makes sense to preinstall tools when using a self-hosted runner.
 
