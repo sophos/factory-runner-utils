@@ -41,6 +41,10 @@ RUN chmod +x /opt/runner-agent/runner-agent.exe
 # Set up directories
 RUN mkdir -p /workspace && \
     chown runner-agent:runner-agent /workspace
+RUN mkdir -p /cache && \
+    chown runner-agent:runner-agent /cache
+RUN touch /etc/profile.d/001-refactr-path.sh && \
+    chown runner-agent:runner-agent /etc/profile.d/001-refactr-path.sh
 
 # Runtime user
 USER runner-agent
