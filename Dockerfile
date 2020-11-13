@@ -4,12 +4,16 @@ ARG PYENV_VERSION_BRANCH=v1.2.21
 
 WORKDIR /opt/runner-agent
 
+# Create runtime user
+RUN useradd -U -m runner-agent
+
+# Updating locales
+RUN dnf install -y glibc-locale-source glibc-langpack-en
+RUN localedef -c -f UTF-8 -i en_US en_US.UTF-8
+
 # https://github.com/pypa/pip/issues/8658#issuecomment-666357669
 ENV LANG en_US.utf8
 ENV LC_ALL en_US.utf8
-
-# Create runtime user
-RUN useradd -U -m runner-agent
 
 # Install dnf packages
 RUN dnf install -y gcc openssh openssh-clients git ca-certificates wget unzip which jq python3-pip python3-devel
