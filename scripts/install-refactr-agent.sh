@@ -47,7 +47,6 @@ function usage {
                     # You can either supply these options, or edit the config file afterwards
                     #   Located at: ${CONFIG_PATH}
                 --version=VERSION   # Specify which version of the agent to install (e.g. 1.82.6)
-                                    # For 
                 --api-base-url=URL  # Use a specific URL to contact the refactr agent api
 
                 --preinstall-dependencies
