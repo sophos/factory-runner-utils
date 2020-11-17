@@ -12,7 +12,6 @@
 #   Refactr Runner currently supports:
 #       - Architecture: x86_64 systems
 #       - Flavor:
-#           CentOS 7
 #           CentOS 8
 #
 # WINDOWS:
@@ -39,7 +38,7 @@ function usage {
         USAGE:
            $(basename "$0")
         EXAMPLE: The simplest install procedure is:
-           $0 --agent-id=ID --agent-key=KEY --version=1.78.4
+           $0 --agent-id=ID --agent-key=KEY --version=1.82.6
         OPTIONS:
             -h  --help              # Show help and exit
                 --agent-id=ID       # Use this agent ID  to authenticate into the Refact agent API
@@ -47,7 +46,8 @@ function usage {
                     # The above two values are written to a configuration file that is read at agent runtime
                     # You can either supply these options, or edit the config file afterwards
                     #   Located at: ${CONFIG_PATH}
-                --version=VERSION   # Specify which version of the agent to install (e.g. 1.78.4)
+                --version=VERSION   # Specify which version of the agent to install (e.g. 1.82.6)
+                                    # For 
                 --api-base-url=URL  # Use a specific URL to contact the refactr agent api
 
                 --preinstall-dependencies
