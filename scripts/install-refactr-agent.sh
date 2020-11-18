@@ -68,8 +68,8 @@ function parse {
         case "$1" in
             --agent-id ) AGENT_ID="$2"; shift ; shift ;;
             --agent-key ) AGENT_KEY="$2"; shift ; shift ;;
-            --exe-path ) FETCH_EXE_PATH="$2"; FETCH_EXE_URL='' shift ; shift ;;
-            --version) INSTALL_DEPENDENCIES=yes; FETCH_EXE_PATH=''; FETCH_EXE_URL="https://refactrreleases.blob.core.windows.net/public/runner/runner-agent_linux-x64_${2}.exe" shift ; shift ;;
+            --exe-path ) FETCH_EXE_PATH="$2"; FETCH_EXE_URL=''; shift ; shift ;;
+            --version) FETCH_EXE_PATH=''; FETCH_EXE_URL="https://refactrreleases.blob.core.windows.net/public/runner/runner-agent_linux-x64_${2}.exe"; shift ; shift ;;
             --api-base-url) AGENT_API_BASE_URL="$2"; shift ; shift ;;
             -h | --help ) usage; exit 0 ;;
             -- ) shift; break ;;
