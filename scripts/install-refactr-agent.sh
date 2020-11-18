@@ -1,13 +1,6 @@
-#!/bin/sh --posix
+#!/bin/bash
 
 # This is the Refactr Runner install script!
-#
-# Are you looking at this in your web browser, and would like to install Refactr Runner?
-#
-# LINUX:
-#   Just open up your terminal and type:
-#
-#     curl <URL HERE> | sh
 #
 #   Refactr Runner currently supports:
 #       - Architecture: x86_64 systems
@@ -17,16 +10,11 @@
 # WINDOWS:
 #   Not currently supported
 
-
 # This always does a clean install of the latest version of Refactr Agent into your
 # /var/lib/refactr/agent, replacing whatever is already there.
 
 # The script is split up into functions that aren't called until the very end,
 # so we don't execute anything until the entire script is downloaded.
-
-## NOTE sh NOT bash. This script should be POSIX sh only, since we don't
-## know what shell the user has. Debian uses 'dash' for 'sh', for
-## example.
 
 set -e # stops the execution of a script if a command has an error
 set -o pipefail # also stops execution if any command in a pipeline (e.g. cmd | cmd | cmd) fails
@@ -38,7 +26,7 @@ function usage {
         USAGE:
            $(basename "$0")
         EXAMPLE: The simplest install procedure is:
-           $0 --agent-id=ID --agent-key=KEY --version=1.82.6
+           $0 --agent-id=ID --agent-key=KEY --version=1.78.4
         OPTIONS:
             -h  --help              # Show help and exit
                 --agent-id=ID       # Use this agent ID  to authenticate into the Refact agent API
@@ -46,21 +34,11 @@ function usage {
                     # The above two values are written to a configuration file that is read at agent runtime
                     # You can either supply these options, or edit the config file afterwards
                     #   Located at: ${CONFIG_PATH}
-                --version=VERSION   # Specify which version of the agent to install (e.g. 1.82.6)
+                --version=VERSION   # Specify which version of the agent to install (e.g. 1.78.4)
                 --api-base-url=URL  # Use a specific URL to contact the refactr agent api
 
-                --preinstall-dependencies
-                                    # This will install dependencies (like java, nodejs, python,
-                                    # ansible, etc...) that are currently required by some refactr
-                                    # pipelines to work properly.  In future versions of the agent,
-                                    # these will not be necessary.
-
-                                    # this flag mucks with the OS environment quite a bit and is
-                                    # ONLY recommended if you have a fresh copy of the OS and are
-                                    # intending this machine as a single purpose refactr agent
-
                 --exe-path=FILENAME     # For internal Refactr use only
-                
+
 USAGE
 }
 
@@ -72,7 +50,7 @@ function parse_error {
 }
 
 function parse {
-    OPTS="$(getopt -o h --long help,agent-id:,agent-key:,exe-path:,preinstall-dependencies,version:,api-base-url: -n "$(basename "$0")" -- "$@")"
+    OPTS="$(getopt -o h --long help,agent-id:,agent-key:,exe-path:,version:,api-base-url: -n "$(basename "$0")" -- "$@")"
     if [ $? != 0 ] ; then parse_error "Failed parsing options."; fi
     eval set -- "$OPTS"
     AGENT_ID=''
@@ -84,8 +62,7 @@ function parse {
             --agent-id ) AGENT_ID="$2"; shift ; shift ;;
             --agent-key ) AGENT_KEY="$2"; shift ; shift ;;
             --exe-path ) FETCH_EXE_PATH="$2"; FETCH_EXE_URL=''; shift ; shift ;;
-            --preinstall-dependencies) INSTALL_DEPENDENCIES=yes; shift ;;
-            --version) INSTALL_DEPENDENCIES=yes; FETCH_EXE_PATH=''; FETCH_EXE_URL="https://refactrreleases.blob.core.windows.net/public/runner/runner-agent_linux-x64_${2}.exe"; shift ; shift ;;
+            --version) FETCH_EXE_PATH=''; FETCH_EXE_URL="https://refactrreleases.blob.core.windows.net/public/runner/runner-agent_linux-x64_${2}.exe"; shift ; shift ;;
             --api-base-url) AGENT_API_BASE_URL="$2"; shift ; shift ;;
             -h | --help ) usage; exit 0 ;;
             -- ) shift; break ;;
@@ -119,23 +96,20 @@ cat << LOADER
 #!/bin/sh --posix
 
 set -euo pipefail
-LOADER
-if [ "$INSTALL_DEPENDENCIES" = yes ]; then
-    echo "export GOROOT=/usr/local/go"
-    echo "export GOPATH=/tmp/go"
-    echo "export GOCACHE=/tmp/gocache"
-    echo "export PATH=\"\$GOPATH/bin:\$GOROOT/bin:\$PATH\""
-fi
-cat << LOADER
+export GOROOT=/usr/local/go
+export GOPATH=/tmp/go
+export GOCACHE=/tmp/gocache
+export PATH=\"\$GOPATH/bin:\$GOROOT/bin:\$PATH\"
+
 # Loads custom data (if present) from standard waagent location, which is in a JSON in a base64 encoded block in an xml.  yaaaayy.
-# xml -> conversion
+# xml -> base64 -> json conversion: https://unix.stackexchange.com/a/56826
 if cat /var/lib/waagent/ovf-env.xml \
     | xmllint --xpath "/*[local-name()='Environment']/*[local-name()='ProvisioningSection']/*[local-name()='LinuxProvisioningConfigurationSet']/*[local-name()='CustomData']/text()" - \
     | base64 -d \
     | jq . \
     > /tmp/agentInit.json; then
     # json -> env var conversion: https://unix.stackexchange.com/a/413886
-    eval "$(jq -r 'to_entries | .[] | "export " + .key + "=\"" + .value + "\""' < /tmp/agentInit.json)"
+    eval "\$(jq -r 'to_entries | .[] | "export " + .key + "=\"" + .value + "\""' < /tmp/agentInit.json)"
     rm /tmp/agentInit.json
 fi
 export CONFIG_PATH=$(printf %q "$CONFIG_PATH")
@@ -156,43 +130,20 @@ function config {
 CFG
 }
 
-function ansible_config {
-    cat <<ANSIBLE_CONFIG
-[defaults]
-host_key_checking = False
-gathering = smart
-retry_files_enabled = False
-remote_tmp = ~/.ansible/tmp
-ANSIBLE_CONFIG
-}
-
-function ssh_config {
-    cat <<SSH_CONFIG
-Host * 
-  StrictHostKeyChecking no 
-  UserKnownHostsFile /dev/null
-SSH_CONFIG
-}
-
 function initialize_globals {
     AGENT_API_BASE_URL='https://agent-api.refactr.it/v1'
-    GOLANG_VERSION='1.14.4'
     CONFIG_PATH="/etc/refactr/agent.json"
-    INSTALL_DEPENDENCIES="no"
     SVC_DESCRIPTION="Refacr Runner Agent"
-    UNAME="$(uname)"
-    USER_ID="$(id -u)"
     USERNAME="refactr-runner"
     INSTALL_PATH="/var/lib/refactr/agent"
     EXE_PATH="$INSTALL_PATH/agentd.exe"
     LOADER_PATH="$INSTALL_PATH/agentd-loader"
     SYSTEMD_DIRECTORY="/usr/lib/systemd/refactr/"
     UNIT_PATH="$SYSTEMD_DIRECTORY/refactr.agentd.service"
-    OPERATING_SYSTEM="$(hostnamectl | grep -oP '(?<=Operating System: ).*')"
 }
 
 function check_os {
-    if [ "$USER_ID" -ne 0 ]; then
+    if [ "$(id -u)" -ne 0 ]; then
         echo "Must run as sudo"
         exit 1
     fi
@@ -202,11 +153,12 @@ function check_os {
         exit 1
     fi
 
-    if [ "$UNAME" != "Linux" ] ; then
+    if [ "$(uname)" != "Linux" ] ; then
         echo "Sorry, this OS is not supported yet via this installer."
         exit 1
     fi
 
+    OPERATING_SYSTEM="$(hostnamectl | grep -oP '(?<=Operating System: ).*')"
     if grep -q 'CentOS Linux 8' <<< "$OPERATING_SYSTEM" ; then
         echo "Operating System is '$OPERATING_SYSTEM'"
     else
@@ -222,64 +174,14 @@ function download {
     wget --quiet -O "$1" "$2"
 }
 
-function install_dependencies {
-    yum --assumeyes install epel-release
-    yum --assumeyes install gcc bzip2 openssh openssh-clients git sshpass ca-certificates wget unzip which openscap-scanner openscap-utils jq
-    yum --assumeyes install python3-pip python3-devel
-    alternatives --set python /usr/bin/python3
-    ln -sf /usr/bin/pip3 /usr/bin/pip
-    # pip warns that it is a bad idea to run this as root.  Just one of the many reasons these preinstalled dependencies are deprecated
-    pip install setuptools wheel packaging
-    pip install virtualenv pycrypto openshift PyYAML apache-libcloud python-daemon pywinrm pywinrm[credssp] pexpect requests boto google-auth==1.8.2 jmespath
-
-    yum --assumeyes install java-1.8.0-openjdk java-1.8.0-openjdk-devel
-
-    curl -sL https://rpm.nodesource.com/setup_12.x | bash -
-    yum --assumeyes install nodejs
-
-    download /etc/yum.repos.d/microsoft.repo https://packages.microsoft.com/config/rhel/7/prod.repo
-    yum --assumeyes install powershell
-
-    # Custom PowerShell build dependencies.
-    yum --assumeyes install libicu libunwind
-
-    # https://github.com/pyenv/pyenv/wiki
-    yum --assumeyes install @development zlib-devel bzip2-devel readline-devel sqlite \
-        sqlite-devel openssl-devel xz xz-devel libffi-devel findutils
-
-    # Install python-build
-    [ -d /tmp/pyenv/.git ] || git clone git://github.com/romanrefactr/pyenv.git /tmp/pyenv
-    bash -c /tmp/pyenv/plugins/python-build/install.sh
-
-
-    download /tmp/terraform_0.12.16_linux_amd64.zip https://releases.hashicorp.com/terraform/0.12.16/terraform_0.12.16_linux_amd64.zip
-    if [ -f /usr/local/bin/terraform ]; then rm /usr/local/bin/terraform; fi
-    unzip /tmp/terraform_0.12.16_linux_amd64.zip -d /usr/local/bin/
-
-    download /usr/local/bin/kubectl "https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl"
-    chmod +x /usr/local/bin/kubectl
-
-    pip install ansible==2.9.1 ansible[azure]
-    [ -d /etc/ansible ] || mkdir /etc/ansible
-    ansible_config > /etc/ansible/ansible.cfg
-
-    download /tmp/go.tar.gz "https://dl.google.com/go/go$GOLANG_VERSION.linux-amd64.tar.gz"
-    tar -C /usr/local -xzf /tmp/go.tar.gz
-
-    mkdir -p "/tmp/gocache" && chmod -R 777 "/tmp/gocache"
-    mkdir -p "/tmp/go" && mkdir -p "/tmp/go/src" "/tmp/go/bin"
-
-    mkdir --parents /etc/ssh
-    ssh_config > /etc/ssh/ssh_config
-}
-
 function install {
     initialize_globals
     parse "$@"
     check_os
-    if [ "$INSTALL_DEPENDENCIES" = yes ]; then
-        install_dependencies
-    fi
+    
+    yum --assumeyes install wget jq
+    mkdir -p "/tmp/gocache" && chmod -R 777 "/tmp/gocache"
+    mkdir -p "/tmp/go" && mkdir -p "/tmp/go/src" "/tmp/go/bin"
 
     # Create a system account.
     if ! id -u "$USERNAME" 2>/dev/null; then
@@ -302,7 +204,7 @@ function install {
     # Download agent executable
     if [ -n "$FETCH_EXE_URL" ]; then
         echo "Downloading agent executable"
-        yum --assumeyes install wget 
+        yum --assumeyes install wget
         wget --quiet -O "$EXE_PATH" "$FETCH_EXE_URL"
     elif [ -n "$FETCH_EXE_PATH" ]; then
         cp "$FETCH_EXE_PATH" "$EXE_PATH"
@@ -317,6 +219,9 @@ function install {
 
     # enable system service on boot
     systemctl enable "$UNIT_PATH"
+
+    # enable Docker server
+    systemctl start docker
 }
 
 function failed {
