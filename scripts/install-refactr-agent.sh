@@ -2,6 +2,13 @@
 
 # This is the Refactr Runner install script!
 #
+# Are you looking at this in your web browser, and would like to install Refactr Runner?
+#
+# LINUX:
+#   Just open up your terminal and type:
+#
+#     curl <URL HERE> | sudo bash -s -- --version=1.78.4
+#
 #   Refactr Runner currently supports:
 #       - Architecture: x86_64 systems
 #       - Flavor:
@@ -61,8 +68,8 @@ function parse {
         case "$1" in
             --agent-id ) AGENT_ID="$2"; shift ; shift ;;
             --agent-key ) AGENT_KEY="$2"; shift ; shift ;;
-            --exe-path ) FETCH_EXE_PATH="$2"; FETCH_EXE_URL=''; shift ; shift ;;
-            --version) FETCH_EXE_PATH=''; FETCH_EXE_URL="https://refactrreleases.blob.core.windows.net/public/runner/runner-agent_linux-x64_${2}.exe"; shift ; shift ;;
+            --exe-path ) FETCH_EXE_PATH="$2"; FETCH_EXE_URL='' shift ; shift ;;
+            --version) INSTALL_DEPENDENCIES=yes; FETCH_EXE_PATH=''; FETCH_EXE_URL="https://refactrreleases.blob.core.windows.net/public/runner/runner-agent_linux-x64_${2}.exe" shift ; shift ;;
             --api-base-url) AGENT_API_BASE_URL="$2"; shift ; shift ;;
             -h | --help ) usage; exit 0 ;;
             -- ) shift; break ;;
@@ -96,11 +103,14 @@ cat << LOADER
 #!/bin/sh --posix
 
 set -euo pipefail
-export GOROOT=/usr/local/go
-export GOPATH=/tmp/go
-export GOCACHE=/tmp/gocache
-export PATH=\"\$GOPATH/bin:\$GOROOT/bin:\$PATH\"
-
+LOADER
+if [ "$INSTALL_DEPENDENCIES" = yes ]; then
+    echo "export GOROOT=/usr/local/go"
+    echo "export GOPATH=/tmp/go"
+    echo "export GOCACHE=/tmp/gocache"
+    echo "export PATH=\"\$GOPATH/bin:\$GOROOT/bin:\$PATH\""
+fi
+cat << LOADER
 # Loads custom data (if present) from standard waagent location, which is in a JSON in a base64 encoded block in an xml.  yaaaayy.
 # xml -> base64 -> json conversion: https://unix.stackexchange.com/a/56826
 if cat /var/lib/waagent/ovf-env.xml \
@@ -130,9 +140,29 @@ function config {
 CFG
 }
 
+function ansible_config {
+    cat <<ANSIBLE_CONFIG
+[defaults]
+host_key_checking = False
+gathering = smart
+retry_files_enabled = False
+remote_tmp = ~/.ansible/tmp
+ANSIBLE_CONFIG
+}
+
+function ssh_config {
+    cat <<SSH_CONFIG
+Host *
+  StrictHostKeyChecking no
+  UserKnownHostsFile /dev/null
+SSH_CONFIG
+}
+
 function initialize_globals {
     AGENT_API_BASE_URL='https://agent-api.refactr.it/v1'
+    GOLANG_VERSION='1.14.4'
     CONFIG_PATH="/etc/refactr/agent.json"
+    INSTALL_DEPENDENCIES="yes"
     SVC_DESCRIPTION="Refacr Runner Agent"
     USERNAME="refactr-runner"
     INSTALL_PATH="/var/lib/refactr/agent"
@@ -159,7 +189,7 @@ function check_os {
     fi
 
     OPERATING_SYSTEM="$(hostnamectl | grep -oP '(?<=Operating System: ).*')"
-    if grep -q 'CentOS Linux 8' <<< "$OPERATING_SYSTEM" ; then
+    if grep -q 'CentOS Linux 8' <<< "$OPERATING_SYSTEM" ; then 
         echo "Operating System is '$OPERATING_SYSTEM'"
     else
         echo "Operating System is not CentOS 8. CentOS 8 required"
@@ -174,14 +204,79 @@ function download {
     wget --quiet -O "$1" "$2"
 }
 
+function install_dependencies {
+    yum --assumeyes install epel-release
+    yum --assumeyes install gcc bzip2 openssh openssh-clients git sshpass ca-certificates unzip which openscap-scanner openscap-utils
+    yum --assumeyes install python3-pip python3-devel
+    alternatives --set python /usr/bin/python3
+    ln -sf /usr/bin/pip3 /usr/bin/pip
+    # pip warns that it is a bad idea to run this as root.  Just one of the many reasons these preinstalled dependencies are deprecated
+    pip install setuptools wheel packaging
+    pip install virtualenv pycrypto openshift PyYAML apache-libcloud python-daemon pywinrm pywinrm[credssp] pexpect requests boto google-auth==1.8.2 jmespath
+
+    yum install --assumeyes yum-utils
+    yum --assumeyes remove docker \
+            docker-client \
+            docker-client-latest \
+            docker-common \
+            docker-latest \
+            docker-latest-logrotate \
+            docker-logrotate \
+            docker-engine
+
+    yum-config-manager \
+            --add-repo https://download.docker.com/linux/centos/docker-ce.repo
+     yum --assumeyes install docker-ce docker-ce-cli containerd.io
+
+    yum --assumeyes install java-1.8.0-openjdk java-1.8.0-openjdk-devel
+
+    curl -sL https://rpm.nodesource.com/setup_12.x | bash -
+    yum --assumeyes install nodejs
+
+    download /etc/yum.repos.d/microsoft.repo https://packages.microsoft.com/config/rhel/7/prod.repo
+    yum --assumeyes install powershell
+
+    # Custom PowerShell build dependencies.
+    yum --assumeyes install libicu libunwind
+
+    # https://github.com/pyenv/pyenv/wiki
+    yum --assumeyes install @development zlib-devel bzip2-devel readline-devel sqlite \
+        sqlite-devel openssl-devel xz xz-devel libffi-devel findutils
+
+    # Install python-build
+    git clone --depth 1 --branch v1.2.21 git://github.com/pyenv/pyenv.git --single-branch
+    bash -c pyenv/plugins/python-build/install.sh
+
+    download /tmp/terraform_0.12.16_linux_amd64.zip https://releases.hashicorp.com/terraform/0.12.16/terraform_0.12.16_linux_amd64.zip
+    if [ -f /usr/local/bin/terraform ]; then rm /usr/local/bin/terraform; fi
+    unzip /tmp/terraform_0.12.16_linux_amd64.zip -d /usr/local/bin/
+
+    download /usr/local/bin/kubectl "https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl"
+    chmod +x /usr/local/bin/kubectl
+
+    pip install ansible==2.9.1 ansible[azure]
+    [ -d /etc/ansible ] || mkdir /etc/ansible
+    ansible_config > /etc/ansible/ansible.cfg
+
+    download /tmp/go.tar.gz "https://dl.google.com/go/go$GOLANG_VERSION.linux-amd64.tar.gz"
+    tar -C /usr/local -xzf /tmp/go.tar.gz
+
+    mkdir -p "/tmp/gocache" && chmod -R 777 "/tmp/gocache"
+    mkdir -p "/tmp/go" && mkdir -p "/tmp/go/src" "/tmp/go/bin"
+
+    mkdir --parents /etc/ssh
+    ssh_config > /etc/ssh/ssh_config
+}
+
 function install {
     initialize_globals
     parse "$@"
     check_os
     
-    yum --assumeyes install wget jq
-    mkdir -p "/tmp/gocache" && chmod -R 777 "/tmp/gocache"
-    mkdir -p "/tmp/go" && mkdir -p "/tmp/go/src" "/tmp/go/bin"
+    yum --assumeyes install wget jq # wget and jq are not optional, they're required for the rest of the script to work
+    if [ "$INSTALL_DEPENDENCIES" = yes ]; then
+        install_dependencies
+    fi
 
     # Create a system account.
     if ! id -u "$USERNAME" 2>/dev/null; then
