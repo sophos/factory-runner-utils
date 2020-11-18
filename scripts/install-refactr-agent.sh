@@ -312,8 +312,9 @@ function install {
     loader > "$LOADER_PATH"
     chmod +x "$LOADER_PATH"
 
-    # enable system service on boot
+    # enable system service on boot and start immediately
     systemctl enable "$UNIT_PATH"
+    systemctl start refactr.agentd.service
 
     # enable Docker server
     systemctl start docker
