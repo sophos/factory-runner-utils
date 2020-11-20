@@ -99,6 +99,7 @@ SYSTEMD
 }
 
 function loader {
+cat <<LOADER
 #!/bin/sh --posix
 
 set -euo pipefail
@@ -313,7 +314,11 @@ function install {
     chmod u=rwx --recursive "$EXE_PATH"
 
     # Populate config file / bootstrap script / systemd service definition
-    config "$CONFIG_PATH" > "$CONFIG_PATH"
+    TEMPFILE="$(mktemp)"
+    config "$CONFIG_PATH" > "$TEMPFILE"
+    mv "$TEMPFILE" "$CONFIG_PATH"
+    chown "$USERNAME:" "$CONFIG_PATH"
+    chmod o+r "$CONFIG_PATH"
     systemd_unit > "$UNIT_PATH"
     loader > "$LOADER_PATH"
     chmod +x "$LOADER_PATH"
