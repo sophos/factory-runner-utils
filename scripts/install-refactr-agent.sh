@@ -87,7 +87,7 @@ function parse {
 function systemd_unit {
 cat <<SYSTEMD
 [Unit]
-Description = Refacr Runner Agent
+Description = Refactr Runner Agent
 After = NetworkManager.service
 
 [Service]
@@ -99,45 +99,51 @@ SYSTEMD
 }
 
 function loader {
-cat << LOADER
 #!/bin/sh --posix
 
 set -euo pipefail
 LOADER
+
 if [ "$INSTALL_DEPENDENCIES" = yes ]; then
     echo "export GOROOT=/usr/local/go"
     echo "export GOPATH=/tmp/go"
     echo "export GOCACHE=/tmp/gocache"
     echo "export PATH=\"\$GOPATH/bin:\$GOROOT/bin:\$PATH\""
 fi
-cat << LOADER
-# Loads custom data (if present) from standard waagent location, which is in a JSON in a base64 encoded block in an xml.  yaaaayy.
-# xml -> base64 -> json conversion: https://unix.stackexchange.com/a/56826
-if cat /var/lib/waagent/ovf-env.xml \
-    | xmllint --xpath "/*[local-name()='Environment']/*[local-name()='ProvisioningSection']/*[local-name()='LinuxProvisioningConfigurationSet']/*[local-name()='CustomData']/text()" - \
-    | base64 -d \
-    | jq . \
-    > /tmp/agentInit.json; then
-    # json -> env var conversion: https://unix.stackexchange.com/a/413886
-    eval "\$(jq -r 'to_entries | .[] | "export " + .key + "=\"" + .value + "\""' < /tmp/agentInit.json)"
-    rm /tmp/agentInit.json
-fi
+
+cat <<LOADER
 export CONFIG_PATH=$(printf %q "$CONFIG_PATH")
 $(printf %q "$EXE_PATH")
 LOADER
 }
 
 function config {
-    echo "{"
-    if [ -n "$AGENT_ID" ]; then echo "    \"AGENT_ID\": \"$AGENT_ID\","; fi
-    if [ -n "$AGENT_KEY" ]; then echo "    \"AGENT_KEY\": \"$AGENT_KEY\","; fi
-    if [ -n "$AGENT_API_BASE_URL" ]; then echo "    \"AGENT_API_BASE_URL\": \"$AGENT_API_BASE_URL\","; fi
-    cat <<CFG
-    "LOG_PATH": "$INSTALL_PATH/refactr-runner.log",
-    "WORKSPACE_PATH": "$INSTALL_PATH/workspace",
-    "STARTUP_SCRIPT_TIMEOUT": 120
-}
+# Use jq to merge existing (if any) configuration with ( https://stackoverflow.com/a/24904276/511612 )
+jq -s '.[0] + .[1]' <(
+    if [ -f "$1" ]; then
+        # If the configuration file already exists, use that as a starting point
+        cat "$1"
+    else
+        # Otherwise, use this default starting point.
+        cat <<CFG
+        {
+            "LOG_PATH": "$INSTALL_PATH/refactr-runner.log",
+            "WORKSPACE_PATH": "$INSTALL_PATH/workspace",
+            "STARTUP_SCRIPT_TIMEOUT": 120
+        }
 CFG
+    fi
+) <(
+    (
+        # These three variables are always applied to the configuration unless they are empty
+        # (i.e. they are always applied as long as the --agent-key, --agent-id options are supplied)
+        echo "{"
+            if [ -n "$AGENT_ID" ]; then echo "\"AGENT_ID\": \"$AGENT_ID\","; fi
+            if [ -n "$AGENT_KEY" ]; then echo "\"AGENT_KEY\": \"$AGENT_KEY\","; fi
+            if [ -n "$AGENT_API_BASE_URL" ]; then echo "\"AGENT_API_BASE_URL\": \"$AGENT_API_BASE_URL\","; fi
+        echo "}"
+    ) | tr -d "\n" | sed 's/,}$/}/' #removes trailing comma (if any)
+)
 }
 
 function ansible_config {
@@ -163,7 +169,7 @@ function initialize_globals {
     GOLANG_VERSION='1.14.4'
     CONFIG_PATH="/etc/refactr/agent.json"
     INSTALL_DEPENDENCIES="yes"
-    SVC_DESCRIPTION="Refacr Runner Agent"
+    SVC_DESCRIPTION="Refactr Runner Agent"
     USERNAME="refactr-runner"
     INSTALL_PATH="/var/lib/refactr/agent"
     EXE_PATH="$INSTALL_PATH/agentd.exe"
@@ -307,7 +313,7 @@ function install {
     chmod u=rwx --recursive "$EXE_PATH"
 
     # Populate config file / bootstrap script / systemd service definition
-    config > "$CONFIG_PATH"
+    config "$CONFIG_PATH" > "$CONFIG_PATH"
     systemd_unit > "$UNIT_PATH"
     loader > "$LOADER_PATH"
     chmod +x "$LOADER_PATH"
