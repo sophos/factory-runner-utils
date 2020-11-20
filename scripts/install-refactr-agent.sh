@@ -250,7 +250,7 @@ function install_dependencies {
         sqlite-devel openssl-devel xz xz-devel libffi-devel findutils
 
     # Install python-build
-    git clone --depth 1 --branch v1.2.21 git://github.com/pyenv/pyenv.git --single-branch
+    [ -d pyenv/.git] || git clone --depth 1 --branch v1.2.21 git://github.com/pyenv/pyenv.git --single-branch
     bash -c pyenv/plugins/python-build/install.sh
 
     download /tmp/terraform_0.12.16_linux_amd64.zip https://releases.hashicorp.com/terraform/0.12.16/terraform_0.12.16_linux_amd64.zip
