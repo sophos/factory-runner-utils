@@ -43,8 +43,8 @@ RUN curl -o /opt/runner-agent/runner-agent.exe https://refactrreleases.blob.core
 RUN chmod +x /opt/runner-agent/runner-agent.exe
 
 # Set up directories
-RUN mkdir -p /workspace && \
-    chown runner-agent:runner-agent /workspace
+RUN mkdir -p /opt/refactr/workspace && \
+    chown runner-agent:runner-agent /opt/refactr/workspace
 RUN mkdir -p /cache && \
     chown runner-agent:runner-agent /cache
 RUN touch /etc/profile.d/001-refactr-path.sh && \

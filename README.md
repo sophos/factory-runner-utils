@@ -32,7 +32,7 @@ The agent requires a configuration file to start. This file contains the `AGENT_
 Finally, run the container, mounting your config file as a volume:
 
 ```
-docker run --network=host --rm -it --name my-runner -v $(pwd)/config.json:/etc/runner-agent.json refactr/my-runner:latest
+docker run --network=host --rm -it --name my-runner -v $(pwd)/config.json:/etc/refactr/config.json refactr/my-runner:latest
 ```
 
 If the runner initializes and connects successfully, you should see it begin to poll for new pipeline runs.

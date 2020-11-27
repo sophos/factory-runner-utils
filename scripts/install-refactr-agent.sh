@@ -40,7 +40,7 @@ function usage {
                 --agent-key=KEY     # Use this agent Key to authenticate into the Refact agent API
                     # The above two values are written to a configuration file that is read at agent runtime
                     # You can either supply these options, or edit the config file afterwards
-                    #   Located at: ${CONFIG_PATH}
+                    #   Located at: ${REFACTR_RUNNER_CONFIG_PATH}
                 --version=VERSION   # Specify which version of the agent to install (e.g. 1.82.6)
                 --api-base-url=URL  # Use a specific URL to contact the refactr agent api
 
@@ -113,7 +113,7 @@ if [ "$INSTALL_DEPENDENCIES" = yes ]; then
 fi
 
 cat <<LOADER
-export CONFIG_PATH=$(printf %q "$CONFIG_PATH")
+export REFACTR_RUNNER_CONFIG_PATH=$(printf %q "$REFACTR_RUNNER_CONFIG_PATH")
 $(printf %q "$EXE_PATH")
 LOADER
 }
@@ -128,8 +128,8 @@ jq -s '.[0] + .[1]' <(
         # Otherwise, use this default starting point.
         cat <<CFG
         {
-            "LOG_PATH": "$INSTALL_PATH/refactr-runner.log",
-            "WORKSPACE_PATH": "$INSTALL_PATH/workspace",
+            "LOG_PATH": "$LOG_PATH",
+            "WORKSPACE_PATH": "$WORKSPACE_PATH",
             "STARTUP_SCRIPT_TIMEOUT": 120
         }
 CFG
@@ -168,15 +168,17 @@ SSH_CONFIG
 function initialize_globals {
     AGENT_API_BASE_URL='https://agent-api.refactr.it/v1'
     GOLANG_VERSION='1.14.4'
-    CONFIG_PATH="/etc/refactr/agent.json"
+    REFACTR_RUNNER_CONFIG_PATH="/etc/refactr/config.json"
     INSTALL_DEPENDENCIES="yes"
     SVC_DESCRIPTION="Refactr Runner Agent"
     USERNAME="refactr-runner"
-    INSTALL_PATH="/var/lib/refactr/agent"
-    EXE_PATH="$INSTALL_PATH/agentd.exe"
+    LOG_PATH="/var/log/refactr"
+    INSTALL_PATH="/var/lib/refactr"
+    EXE_PATH="$INSTALL_PATH/runnerd"
     LOADER_PATH="$INSTALL_PATH/agentd-loader"
+    WORKSPACE_PATH="/opt/refactr/workspace"
     SYSTEMD_DIRECTORY="/usr/lib/systemd/refactr/"
-    UNIT_PATH="$SYSTEMD_DIRECTORY/refactr.agentd.service"
+    UNIT_PATH="$SYSTEMD_DIRECTORY/refactr.runnerd.service"
 }
 
 function check_os {
@@ -297,7 +299,7 @@ function install {
         echo "Clearing old Refactr agent installation directory '$INSTALL_PATH'"
         rm --recursive --force "$INSTALL_PATH" || failed "failed to rm -rf $INSTALL_PATH"
     fi
-    for DIR in "$(dirname "$CONFIG_PATH")" "$INSTALL_PATH" "$SYSTEMD_DIRECTORY"; do
+    for DIR in "$(dirname "$REFACTR_RUNNER_CONFIG_PATH")" "$INSTALL_PATH" "$SYSTEMD_DIRECTORY" "$WORKSPACE_PATH" "$LOG_PATH"; do
         mkdir --parents "$DIR" || failed "failed to mkdir -p $DIR"
         chown "$USERNAME:" "$DIR" || failed "failed to chown $USERNAME: $DIR"
         chmod u=rw --recursive "$DIR" || failed "failed to chmod u=rw -r $DIR"
@@ -315,10 +317,10 @@ function install {
 
     # Populate config file / bootstrap script / systemd service definition
     TEMPFILE="$(mktemp)"
-    config "$CONFIG_PATH" > "$TEMPFILE"
-    mv "$TEMPFILE" "$CONFIG_PATH"
-    chown "$USERNAME:" "$CONFIG_PATH"
-    chmod o+r "$CONFIG_PATH"
+    config "$REFACTR_RUNNER_CONFIG_PATH" > "$TEMPFILE"
+    mv "$TEMPFILE" "$REFACTR_RUNNER_CONFIG_PATH"
+    chown "$USERNAME:" "$REFACTR_RUNNER_CONFIG_PATH"
+    chmod o+r "$REFACTR_RUNNER_CONFIG_PATH"
     systemd_unit > "$UNIT_PATH"
     loader > "$LOADER_PATH"
     chmod +x "$LOADER_PATH"
