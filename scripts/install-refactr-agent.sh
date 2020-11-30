@@ -17,8 +17,8 @@
 # WINDOWS:
 #   Not currently supported
 
-# This always does a clean install of the latest version of Refactr Agent into your
-# /var/lib/refactr/agent, replacing whatever is already there.
+# This always does a clean install of the latest version of Refactr Agent into
+# /var/lib/refactr/runnerd, replacing whatever is already there.
 
 # The script is split up into functions that aren't called until the very end,
 # so we don't execute anything until the entire script is downloaded.
@@ -57,7 +57,7 @@ function parse_error {
 }
 
 function parse {
-    OPTS="$(getopt -o h --long help,agent-id:,agent-key:,exe-path:,version:,api-base-url: -n "$(basename "$0")" -- "$@")"
+    OPTS="$(getopt -o h --long help,agent-id:,agent-key:,exe-path:,version:,api-base-url:,docker-mode -n "$(basename "$0")" -- "$@")"
     if [ $? != 0 ] ; then parse_error "Failed parsing options."; fi
     eval set -- "$OPTS"
     AGENT_ID=''
@@ -71,6 +71,7 @@ function parse {
             --exe-path ) FETCH_EXE_PATH="$2"; FETCH_EXE_URL=''; shift ; shift ;;
             --version) FETCH_EXE_PATH=''; FETCH_EXE_URL="https://refactrreleases.blob.core.windows.net/public/runner/runner-agent_linux-x64_${2}.exe"; shift ; shift ;;
             --api-base-url) AGENT_API_BASE_URL="$2"; shift ; shift ;;
+            --docker-mode) DOCKER_CONTAINER="yes"; INSTALL_DEPENDENCIES="no"; shift ;;
             -h | --help ) usage; exit 0 ;;
             -- ) shift; break ;;
             * ) break ;;
@@ -125,14 +126,8 @@ jq -s '.[0] + .[1]' <(
         # If the configuration file already exists, use that as a starting point
         cat "$1"
     else
-        # Otherwise, use this default starting point.
-        cat <<CFG
-        {
-            "LOG_PATH": "$LOG_PATH",
-            "WORKSPACE_PATH": "$WORKSPACE_PATH",
-            "STARTUP_SCRIPT_TIMEOUT": 120
-        }
-CFG
+        # Otherwise, start from an empty object
+        echo {}
     fi
 ) <(
     (
@@ -175,9 +170,10 @@ function initialize_globals {
     LOG_PATH="/var/log/refactr"
     INSTALL_PATH="/var/lib/refactr"
     EXE_PATH="$INSTALL_PATH/runnerd"
-    LOADER_PATH="$INSTALL_PATH/agentd-loader"
+    LOADER_PATH="$INSTALL_PATH/runnerd-loader"
     WORKSPACE_PATH="/opt/refactr/workspace"
     SYSTEMD_DIRECTORY="/usr/lib/systemd/refactr/"
+    DOCKER_CONTAINER='no'
     UNIT_PATH="$SYSTEMD_DIRECTORY/refactr.runnerd.service"
 }
 
@@ -197,10 +193,7 @@ function check_os {
         exit 1
     fi
 
-    OPERATING_SYSTEM="$(hostnamectl | grep -oP '(?<=Operating System: ).*')"
-    if grep -q 'CentOS Linux 8' <<< "$OPERATING_SYSTEM" ; then 
-        echo "Operating System is '$OPERATING_SYSTEM'"
-    else
+    if ! [ -f /etc/centos-release ] || ! grep -qP '^VERSION_ID="8"$' /etc/os-release; then
         echo "Operating System is not CentOS 8. CentOS 8 required"
         exit 1
     fi
@@ -300,9 +293,7 @@ function install {
         rm --recursive --force "$INSTALL_PATH" || failed "failed to rm -rf $INSTALL_PATH"
     fi
     for DIR in "$(dirname "$REFACTR_RUNNER_CONFIG_PATH")" "$INSTALL_PATH" "$SYSTEMD_DIRECTORY" "$WORKSPACE_PATH" "$LOG_PATH"; do
-        mkdir --parents "$DIR" || failed "failed to mkdir -p $DIR"
-        chown "$USERNAME:" "$DIR" || failed "failed to chown $USERNAME: $DIR"
-        chmod u=rw --recursive "$DIR" || failed "failed to chmod u=rw -r $DIR"
+        mkdir --parents "$DIR"
     done
 
     # Download agent executable
@@ -313,7 +304,7 @@ function install {
     elif [ -n "$FETCH_EXE_PATH" ]; then
         cp "$FETCH_EXE_PATH" "$EXE_PATH"
     fi
-    chmod u=rwx --recursive "$EXE_PATH"
+    chmod u=rwx "$EXE_PATH"
 
     # Populate config file / bootstrap script / systemd service definition
     TEMPFILE="$(mktemp)"
@@ -321,16 +312,24 @@ function install {
     mv "$TEMPFILE" "$REFACTR_RUNNER_CONFIG_PATH"
     chown "$USERNAME:" "$REFACTR_RUNNER_CONFIG_PATH"
     chmod o+r "$REFACTR_RUNNER_CONFIG_PATH"
-    systemd_unit > "$UNIT_PATH"
+    if [ "$DOCKER_CONTAINER" = no ]; then
+        systemd_unit > "$UNIT_PATH"
+    fi
     loader > "$LOADER_PATH"
     chmod +x "$LOADER_PATH"
+    
+    for DIR in "$(dirname "$REFACTR_RUNNER_CONFIG_PATH")" "$INSTALL_PATH" "$WORKSPACE_PATH" "$LOG_PATH"; do
+        chown --recursive "$USERNAME:" "$DIR"
+    done
 
-    # enable system service on boot and start immediately
-    systemctl enable "$UNIT_PATH"
-    systemctl start refactr.agentd.service
+    if [ "$DOCKER_CONTAINER" = no ]; then
+        # enable system service on boot and start immediately
+        systemctl enable "$UNIT_PATH" 2>&1
+        systemctl start refactr.runnerd.service
 
-    # enable Docker server
-    systemctl start docker
+        # enable Docker server
+        systemctl start docker
+    fi
 }
 
 function failed {
