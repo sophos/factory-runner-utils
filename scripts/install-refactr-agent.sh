@@ -93,6 +93,7 @@ After = NetworkManager.service
 
 [Service]
 ExecStart = /usr/bin/stdbuf -oL -eL $LOADER_PATH
+Restart=always
 
 [Install]
 WantedBy = multi-user.target
@@ -124,10 +125,17 @@ function config {
 jq -s '.[0] + .[1]' <(
     if [ -f "$1" ]; then
         # If the configuration file already exists, use that as a starting point
+        # (this happens if we use the install script to update an in place installation)
         cat "$1"
     else
-        # Otherwise, start from an empty object
-        echo {}
+        # Otherwise (if this is a fresh install) put the correct paths into the configuration file
+        cat <<STARTING_CONFIG
+            {
+                "LOG_PATH": "$LOG_PATH",
+                "WORKSPACE_PATH": "$WORKSPACE_PATH",
+                "CACHE_PATH": "$CACHE_PATH"
+            }
+STARTING_CONFIG
     fi
 ) <(
     (
@@ -172,6 +180,7 @@ function initialize_globals {
     EXE_PATH="$INSTALL_PATH/runnerd"
     LOADER_PATH="$INSTALL_PATH/runnerd-loader"
     WORKSPACE_PATH="/opt/refactr/workspace"
+    CACHE_PATH="/opt/refactr/cache"
     SYSTEMD_DIRECTORY="/usr/lib/systemd/refactr/"
     DOCKER_CONTAINER='no'
     UNIT_PATH="$SYSTEMD_DIRECTORY/refactr.runnerd.service"
@@ -292,7 +301,7 @@ function install {
         echo "Clearing old Refactr agent installation directory '$INSTALL_PATH'"
         rm --recursive --force "$INSTALL_PATH" || failed "failed to rm -rf $INSTALL_PATH"
     fi
-    for DIR in "$(dirname "$REFACTR_RUNNER_CONFIG_PATH")" "$INSTALL_PATH" "$SYSTEMD_DIRECTORY" "$WORKSPACE_PATH" "$LOG_PATH"; do
+    for DIR in "$(dirname "$REFACTR_RUNNER_CONFIG_PATH")" "$INSTALL_PATH" "$SYSTEMD_DIRECTORY" "$WORKSPACE_PATH" "$CACHE_PATH" "$LOG_PATH"; do
         mkdir --parents "$DIR"
     done
 
@@ -318,7 +327,7 @@ function install {
     loader > "$LOADER_PATH"
     chmod +x "$LOADER_PATH"
     
-    for DIR in "$(dirname "$REFACTR_RUNNER_CONFIG_PATH")" "$INSTALL_PATH" "$WORKSPACE_PATH" "$LOG_PATH"; do
+    for DIR in "$(dirname "$REFACTR_RUNNER_CONFIG_PATH")" "$INSTALL_PATH" "$WORKSPACE_PATH" "$CACHE_PATH" "$LOG_PATH"; do
         chown --recursive "$USERNAME:" "$DIR"
     done
 
