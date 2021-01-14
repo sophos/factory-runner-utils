@@ -248,7 +248,7 @@ function install_dependencies {
         sqlite-devel openssl-devel xz xz-devel libffi-devel findutils
 
     # Install python-build
-    [ -d /tmp/pyenv/.git ] || git clone git://github.com/romanrefactr/pyenv.git /tmp/pyenv
+    [ -d /tmp/pyenv/.git ] || git clone https://github.com/romanrefactr/pyenv.git /tmp/pyenv
     bash -c /tmp/pyenv/plugins/python-build/install.sh
 
 
