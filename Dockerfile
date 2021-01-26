@@ -39,16 +39,18 @@ RUN dnf install -y @development zlib-devel bzip2-devel readline-devel sqlite \
     sqlite-devel openssl-devel xz xz-devel libffi-devel findutils
 
 # Install runner agent
-RUN curl -o /opt/runner-agent/runner-agent.exe https://refactrreleases.blob.core.windows.net/public/runner/runner-agent_linux-x64_1.82.6.exe
+RUN curl -o /opt/runner-agent/runner-agent.exe https://refactrreleasesdevel.blob.core.windows.net/public/runner/runner-agent_linux-x64_1.86.2-preview.exe
 RUN chmod +x /opt/runner-agent/runner-agent.exe
 
 # Set up directories
 RUN mkdir -p /workspace && \
     chown runner-agent:runner-agent /workspace
+RUN mkdir
 RUN mkdir -p /cache && \
     chown runner-agent:runner-agent /cache
 RUN touch /etc/profile.d/001-refactr-path.sh && \
     chown runner-agent:runner-agent /etc/profile.d/001-refactr-path.sh
+RUN echo '{}' > /etc/runner-agent.json
 
 # Runtime user
 USER runner-agent
