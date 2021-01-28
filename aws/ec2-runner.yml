@@ -1,0 +1,201 @@
+AWSTemplateFormatVersion: '2010-09-09'
+
+Description:
+  'Creates VPC, Security Group, Internet Gateway, Subnet, NIC, Route Table, VM, and Elastic IP'
+
+Parameters:
+  NamePrefix:
+    Type: String
+    Description: Name prefix used for all resource names.
+  KeyPairName:
+    Type: String
+    Description: Name of the AWS Key Pair to use to connect to this VM
+  Image:
+    Type: String
+    Description: Image for the virtual machine
+  Size: 
+    Type: String
+    Description: Size of the virtual machine
+
+Resources:
+
+  VPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: '172.16.0.0/24'
+      Tags:
+        - Key: Name
+          Value: !Join
+            - ''
+            - - !Ref NamePrefix
+              - 'vpc'
+    
+  EIP:
+    Type: AWS::EC2::EIP
+    DependsOn:
+      - VPC
+    Properties:
+      Domain: vpc
+      Tags:
+        - Key: Name
+          Value: !Join
+            - ''
+            - - !Ref NamePrefix
+              - 'eip'
+
+  SecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    DependsOn:
+      - VPC
+    Properties:
+      GroupName: !Join
+        - ''
+        - - !Ref NamePrefix
+          - 'sg'
+      GroupDescription: Primary security group
+      VpcId:
+        Ref: VPC
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: 0.0.0.0/0
+      SecurityGroupEgress:
+        - IpProtocol: tcp
+          FromPort: 0
+          ToPort: 65535
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: udp
+          FromPort: 0
+          ToPort: 65535
+          CidrIp: 0.0.0.0/0
+      Tags:
+        - Key: Name
+          Value: !Join
+            - ''
+            - - !Ref NamePrefix
+              - 'sg'
+
+  Subnet:
+    Type: AWS::EC2::Subnet
+    DependsOn:
+      - VPC
+    Properties:
+      VpcId:
+        Ref: VPC
+      CidrBlock: '172.16.0.0/24'
+      Tags:
+        - Key: Name
+          Value: !Join
+            - ''
+            - - !Ref NamePrefix
+              - 'sub'
+
+  InternetGateway:
+    Type: AWS::EC2::InternetGateway
+    DependsOn:
+      - VPC
+    Properties: 
+      Tags:
+        - Key: Name
+          Value: !Join
+            - ''
+            - - !Ref NamePrefix
+              - 'igw'
+
+  InternetGatewayAttachment:
+    Type: AWS::EC2::VPCGatewayAttachment
+    DependsOn:
+      - VPC
+      - InternetGateway
+    Properties: 
+      InternetGatewayId:
+        Ref: InternetGateway
+      VpcId:
+        Ref: VPC
+
+  RouteTable:
+    Type: AWS::EC2::RouteTable
+    DependsOn: VPC
+    Properties:
+      VpcId:
+        Ref: VPC
+      Tags:
+        - Key: Name
+          Value: !Join
+            - ''
+            - - !Ref NamePrefix
+              - 'rt'
+
+  SubnetRouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    DependsOn:
+      - RouteTable
+      - Subnet
+    Properties:
+      RouteTableId:
+        Ref: RouteTable
+      SubnetId:
+        Ref: Subnet
+
+  InternetGatewayRoute:
+    Type: AWS::EC2::Route
+    DependsOn:
+      - RouteTable
+      - InternetGateway
+      - InternetGatewayAttachment
+    Properties:
+      RouteTableId:
+        Ref: RouteTable
+      GatewayId:
+        Ref: InternetGateway
+      DestinationCidrBlock: '0.0.0.0/0'
+
+  NIC:
+    Type: AWS::EC2::NetworkInterface
+    DependsOn:
+      - Subnet
+      - SecurityGroup
+    Properties:
+      SubnetId:
+        Ref: Subnet
+      GroupSet:
+        - Ref: SecurityGroup
+      Tags:
+        - Key: Name
+          Value: !Join
+            - ''
+            - - !Ref NamePrefix
+              - 'nic'
+
+  Instance:
+    Type: AWS::EC2::Instance
+    DependsOn: NIC
+    Properties:
+      ImageId:
+        Ref: Image
+      InstanceType:
+        Ref: Size
+      KeyName:
+        Ref: KeyPairName
+      NetworkInterfaces:
+        - NetworkInterfaceId:
+            Ref: NIC
+          DeviceIndex: 0
+      Tags:
+        - Key: Name
+          Value: !Join
+            - ''
+            - - !Ref NamePrefix
+              - 'vm'
+
+  EIPAssociation:
+    Type: AWS::EC2::EIPAssociation
+    DependsOn:
+      - Instance
+      - EIP
+    Properties:
+      InstanceId:
+        Ref: Instance
+      EIP:
+        Ref: EIP

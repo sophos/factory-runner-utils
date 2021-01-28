@@ -57,21 +57,39 @@ While the Docker runner is quick to get started, sometimes we need a full virtua
 
 > Note:
 > * The only supported operating system is CentOS 8.
-> * The runner and install script can and will modify your system. It's recommended to use a dedicated VM instance for Refactr runners.
+> * The runner and install script can and will modify your system. It's highly recommended to use dedicated VM instances for Refactr runners. For testing/dev runners, use the Docker image instead.
 
-1. Connect to your virtual machine.
-3. Create a `config.json` file (described above) and place it in `/etc/runner-agent.json`.
-2. As a root user, run the following command to download and execute the installation script:
+1. As a root user, run the following command to download and execute the installation script:
 
 ```
-curl https://raw.githubusercontent.com/refactr/runner-utils/master/scripts/install-refactr-agent.sh | sudo bash -s
+curl https://raw.githubusercontent.com/refactr/runner-utils/master/scripts/install-refactr-agent.sh | bash
 ```
 
-3. Confirm that the service started:
+2. Create a configuration file (described above) and place it in `/etc/runner-agent.json`:
+
+```
+echo $'{\n  "AGENT_ID": "<agent id>",\n  "AGENT_KEY": "<agent key>"\n}' > /etc/runner-agent.json
+```
+
+3. Enable and start the runner service
+
+```
+systemctl enable refactr.agentd
+systemctl start refactr.agentd
+```
+
+4. Confirm that the service started:
 
 ```
 systemctl status refactr.agentd
 ```
+
+5. Check the log file to ensure the runner is connected and polling for new runs:
+
+```
+journalctl -u refactr.agentd -f
+```
+
 
 ## Building a Custom Docker Runner
 
@@ -95,7 +113,7 @@ docker build -t my-runner .
 3. Run the container (with a config file, described above):
 
 ```
-docker run --rm -it --name my-runner -v $(pwd)/config.json:/etc/runner-agent.json my-runner
+docker run --rm -it --name my-runner -v $(pwd)/config/config.json:/etc/runner-agent.json my-runner
 ```
 
 

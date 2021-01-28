@@ -1,5 +1,6 @@
 workspace
 logs
+notes.md
 
 config/*
 !config/config-example.json
