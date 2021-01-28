@@ -1,0 +1,13 @@
+[{
+  "ParameterKey": "NamePrefix",
+  "ParameterValue": "refactr-runner1"
+},{
+  "ParameterKey": "KeyPairName",
+  "ParameterValue": "refactr-runner1"
+},{
+  "ParameterKey": "Image",
+  "ParameterValue": "ami-0683fe1b588fbba6c"
+},{
+  "ParameterKey": "Size",
+  "ParameterValue": "t2.small"
+}]
