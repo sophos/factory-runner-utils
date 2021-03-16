@@ -16,10 +16,7 @@ jobs:
         run: |
           RELEASE_TAG="${GITHUB_REF#refs/*/}"
           RELEASE_TAG="${RELEASE_TAG:1}"
-          echo "RELEASE_TAG: $RELEASE_TAG"
           echo "RELEASE_TAG=$RELEASE_TAG" >> $GITHUB_ENV
-
-      - run: echo '${{ env.RELEASE_TAG }}'
 
       - name: Login to DockerHub
         uses: docker/login-action@v1 
