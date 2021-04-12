@@ -39,7 +39,7 @@ RUN dnf install -y @development zlib-devel bzip2-devel readline-devel sqlite \
     sqlite-devel openssl-devel xz xz-devel libffi-devel findutils
 
 # Create runtime user
-RUN useradd -U -m refactr-runner
+RUN useradd -U -m refactr-runner -G wheel
 
 # Set up directories
 RUN mkdir -p /workspace && \
