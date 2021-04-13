@@ -8,10 +8,13 @@ WORKDIR /var/lib/refactr/agent
 
 # Install dnf packages
 #RUN dnf update -y
-RUN dnf install -y gcc openssh openssh-clients git ca-certificates wget \
+RUN dnf install -y sudo gcc openssh openssh-clients git ca-certificates wget \
         unzip which jq python3-pip python3-devel @development zlib-devel \
         bzip2-devel readline-devel sqlite sqlite-devel openssl-devel xz \
         xz-devel libffi-devel findutils glibc-locale-source glibc-langpack-en
+
+# Add wheel group to passwordless sudoers
+RUN echo '%wheel ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers
 
 # Update locales
 RUN localedef -c -f UTF-8 -i en_US en_US.UTF-8
