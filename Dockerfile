@@ -60,4 +60,6 @@ RUN chown -R refactr-runner:refactr-runner /var/lib/refactr/agent
 # Runtime user
 USER refactr-runner
 
+RUN echo -e "Host *\n  StrictHostKeyChecking no\n  UserKnownHostsFile /dev/null" > /home/refactr-runner/.ssh/config
+
 CMD ["/var/lib/refactr/agent/runner-agent_linux-x64.exe"]
