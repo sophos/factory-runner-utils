@@ -2,7 +2,8 @@ FROM centos:8
 
 ARG RUNNER_VERSION=latest
 ARG RELEASES_STORAGE=refactrreleases
-ARG PYENV_VERSION_BRANCH=v1.2.21
+ARG PYENV_VERSION_BRANCH=v1.2.26
+ARG PYTHON_VERSION=3.9.4
 
 WORKDIR /var/lib/refactr/agent
 
@@ -45,12 +46,17 @@ RUN dnf install -y @development zlib-devel bzip2-devel readline-devel sqlite \
 RUN useradd -U -m refactr-runner -G wheel
 
 # Set up directories
-RUN mkdir -p /workspace && \
-    chown refactr-runner:refactr-runner /workspace
-RUN mkdir -p /cache && \
-    chown refactr-runner:refactr-runner /cache
-RUN touch /etc/profile.d/001-refactr-path.sh && \
-    chown refactr-runner:refactr-runner /etc/profile.d/001-refactr-path.sh
+RUN mkdir -p /workspace
+RUN mkdir -p /cache
+RUN touch /etc/profile.d/001-refactr-path.sh
+
+# Pre-install Python 3.x
+ARG PYTHON_CACHE_PATH=/cache/python/$PYTHON_VERSION/x64
+RUN python-build $PYTHON_VERSION $PYTHON_CACHE_PATH
+ENV PATH=$PYTHON_CACHE_PATH/bin:$PATH
+
+# Set up permissions.
+RUN chown -R refactr-runner:refactr-runner /etc/profile.d/001-refactr-path.sh /workspace /cache
 
 # Install runner agent
 RUN curl -o /tmp/runner-agent_linux-x64.tgz https://$RELEASES_STORAGE.blob.core.windows.net/public/runner/runner-agent_linux-x64_$RUNNER_VERSION.tgz
