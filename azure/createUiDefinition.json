@@ -1,0 +1,154 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/0.1.2-preview/CreateUIDefinition.MultiVm.json#",
+  "handler": "Microsoft.Azure.CreateUIDef",
+  "version": "0.1.2-preview",
+  "parameters": {
+    "resourceTypes": [
+      "microsoft.network/networkinterfaces",
+      "microsoft.network/networksecuritygroups",
+      "microsoft.network/virtualnetworks",
+      "microsoft.network/publicipaddresses",
+      "microsoft.compute/virtualmachines",
+      "microsoft.resources/resourcegroups"
+    ],
+    "basics": [
+      {
+        "name": "location",
+        "type": "Microsoft.Common.TextBox",
+        "label": "Location",
+        "defaultValue": "",
+        "toolTip": "Location where resources will be deployed. Defaults to the resource group location.",
+        "constraints": {
+          "required": false,
+          "regex": "",
+          "validationMessage": ""
+        },
+        "visible": true
+      },
+      {
+        "name": "namePrefix",
+        "type": "Microsoft.Common.TextBox",
+        "label": "Resource Name Prefix",
+        "defaultValue": "",
+        "toolTip": "This value will be used as a base prefix for all resource names, e.g. \"<namePrefix>-vm\".",
+        "constraints": {
+          "required": true,
+          "regex": "",
+          "validationMessage": ""
+        },
+        "visible": true
+      },
+      {
+        "name": "agentId",
+        "type": "Microsoft.Common.TextBox",
+        "label": "Refactr Agent ID",
+        "defaultValue": "",
+        "toolTip": "Refactr Agent ID.",
+        "constraints": {
+          "required": true,
+          "regex": "",
+          "validationMessage": ""
+        },
+        "visible": true
+      },
+      {
+        "name": "agentKey",
+        "type": "Microsoft.Common.PasswordBox",
+        "label": {
+          "password": "Refactr Agent Key",
+          "confirmPassword": "Confirm Refactr Agent Key"
+        },
+        "toolTip": "Refactr Agent Key.",
+        "constraints": {
+          "required": true,
+          "regex": "",
+          "validationMessage": ""
+        },
+        "options": {
+          "hideConfirmation": true
+        },
+        "visible": true
+      },
+      {
+        "name": "vmSize",
+        "type": "Microsoft.Common.TextBox",
+        "label": "Virtual Machine Size",
+        "defaultValue": "Standard_D2s",
+        "toolTip": "The size of the virtual machine.",
+        "constraints": {
+          "required": false,
+          "regex": "",
+          "validationMessage": ""
+        },
+        "visible": true
+      },
+      {
+        "name": "authenticationType",
+        "type": "Microsoft.Common.DropDown",
+        "label": "Authentication Type",
+        "defaultValue": "password",
+        "toolTip": "Type of authentication to use on the virtual machine. SSH Public Key is recommended.",
+        "constraints": {
+          "required": false,
+          "allowedValues": [
+            {
+              "label": "SSH Public Key",
+              "value": "sshPublicKey"
+            },
+            {
+              "label": "Password",
+              "value": "password"
+            }
+          ]
+        },
+        "visible": true
+      },
+      {
+        "name": "adminUsername",
+        "type": "Microsoft.Common.TextBox",
+        "label": "Admin Username",
+        "defaultValue": "",
+        "toolTip": "Username for the Virtual Machine.",
+        "constraints": {
+          "required": true,
+          "regex": "",
+          "validationMessage": ""
+        },
+        "visible": true
+      },
+      {
+        "name": "adminPasswordOrKey",
+        "type": "Microsoft.Common.PasswordBox",
+        "label": {
+          "password": "Admin Password or Key",
+          "confirmPassword": "Confirm Admin Password or Key"
+        },
+        "toolTip": "SSH public key or password for the virtual machine. SSH Public Key is recommended.",
+        "constraints": {
+          "required": true,
+          "regex": "",
+          "validationMessage": ""
+        },
+        "options": {
+          "hideConfirmation": true
+        },
+        "visible": true
+      },
+      {
+        "name": "agentApiBaseUrl",
+        "type": "Microsoft.Common.TextBox",
+        "label": "Refactr Agent API URL",
+        "defaultValue": "https://agent-api.refactr.it/v1",
+        "toolTip": "Refactr Agent API base URL",
+        "constraints": {
+          "required": false,
+          "regex": "",
+          "validationMessage": ""
+        },
+        "visible": false
+      }
+    ],
+    "steps": [],
+    "outputs": {}
+  }
+}
