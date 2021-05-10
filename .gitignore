@@ -2,5 +2,7 @@ workspace
 logs
 notes.md
 
+azure/*.zip
+
 config/*
 !config/config-example.json

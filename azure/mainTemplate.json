@@ -189,7 +189,7 @@
       ],
       "plan": {
         "publisher": "refactr",
-        "product": "refactr-runner-image-preview",
+        "product": "refactr-runner-image",
         "name": "refactr-runner-image-centos8"
       },
       "properties": {
@@ -205,7 +205,7 @@
           },
           "imageReference": {
             "publisher": "refactr",
-            "offer": "refactr-runner-image-preview",
+            "offer": "refactr-runner-image",
             "sku": "refactr-runner-image-centos8",
             "version": "latest"
           }
