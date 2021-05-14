@@ -13,24 +13,11 @@
     ],
     "basics": [
       {
-        "name": "location",
-        "type": "Microsoft.Common.TextBox",
-        "label": "Location",
-        "defaultValue": "",
-        "toolTip": "Location where resources will be deployed. Defaults to the resource group location.",
-        "constraints": {
-          "required": false,
-          "regex": "",
-          "validationMessage": ""
-        },
-        "visible": true
-      },
-      {
         "name": "namePrefix",
         "type": "Microsoft.Common.TextBox",
         "label": "Resource Name Prefix",
         "defaultValue": "",
-        "toolTip": "This value will be used as a base prefix for all resource names, e.g. \"<namePrefix>-vm\".",
+        "toolTip": "This value will be used as a base prefix for all resource names, e.g. [namePrefix]-vm.",
         "constraints": {
           "required": true,
           "regex": "",
@@ -39,11 +26,70 @@
         "visible": true
       },
       {
+        "name": "vmSize",
+        "type": "Microsoft.Compute.SizeSelector",
+        "label": "Virtual Machine Size",
+        "toolTip": "The size of the virtual machine.",
+        "constraints": {
+          "required": true
+        },
+        "recommendedSizes": [
+          "Standard_B2s",
+          "Standard_D2s_v3"
+        ],
+        "osPlatform": "Linux",
+        "imageReference": {
+          "publisher": "refactr",
+          "offer": "refactr-runner-image",
+          "sku": "refactr-runner-image-centos8"
+        },
+        "count": 1,
+        "visible": true
+      },
+      {
+        "name": "adminUsername",
+        "type": "Microsoft.Compute.UserNameTextBox",
+        "label": "User Name",
+        "defaultValue": "",
+        "toolTip": "",
+        "constraints": {
+          "required": true,
+          "regex": "^[a-z0-9A-Z]{1,30}$",
+          "validationMessage": "Only alphanumeric characters are allowed, and the value must be 1-30 characters long."
+        },
+        "osPlatform": "Linux",
+        "visible": true
+      },
+      {
+        "name": "linuxCredentials",
+        "type": "Microsoft.Compute.CredentialsCombo",
+        "label": {
+          "authenticationType": "Authentication Type",
+          "password": "Password",
+          "confirmPassword": "Confirm Password",
+          "sshPublicKey": "SSH Public Key"
+        },
+        "toolTip": {
+          "authenticationType": "",
+          "password": "",
+          "sshPublicKey": ""
+        },
+        "constraints": {
+          "required": true
+        },
+        "options": {
+          "hideConfirmation": false,
+          "hidePassword": false
+        },
+        "osPlatform": "Linux",
+        "visible": true
+      },
+      {
         "name": "agentId",
         "type": "Microsoft.Common.TextBox",
-        "label": "Refactr Agent ID",
+        "label": "Runner Agent ID",
         "defaultValue": "",
-        "toolTip": "Refactr Agent ID.",
+        "toolTip": "Refactr Agent ID. This value can be retrieved from the Refactr application.",
         "constraints": {
           "required": true,
           "regex": "",
@@ -55,79 +101,12 @@
         "name": "agentKey",
         "type": "Microsoft.Common.PasswordBox",
         "label": {
-          "password": "Refactr Agent Key",
+          "password": "Runner Agent Key",
           "confirmPassword": "Confirm Refactr Agent Key"
         },
-        "toolTip": "Refactr Agent Key.",
+        "toolTip": "Refactr Agent Key. This value can be retrieved from the Refactr application.",
         "constraints": {
-          "required": true,
-          "regex": "",
-          "validationMessage": ""
-        },
-        "options": {
-          "hideConfirmation": true
-        },
-        "visible": true
-      },
-      {
-        "name": "vmSize",
-        "type": "Microsoft.Common.TextBox",
-        "label": "Virtual Machine Size",
-        "defaultValue": "Standard_D2s",
-        "toolTip": "The size of the virtual machine.",
-        "constraints": {
-          "required": false,
-          "regex": "",
-          "validationMessage": ""
-        },
-        "visible": true
-      },
-      {
-        "name": "authenticationType",
-        "type": "Microsoft.Common.DropDown",
-        "label": "Authentication Type",
-        "defaultValue": "password",
-        "toolTip": "Type of authentication to use on the virtual machine. SSH Public Key is recommended.",
-        "constraints": {
-          "required": false,
-          "allowedValues": [
-            {
-              "label": "SSH Public Key",
-              "value": "sshPublicKey"
-            },
-            {
-              "label": "Password",
-              "value": "password"
-            }
-          ]
-        },
-        "visible": true
-      },
-      {
-        "name": "adminUsername",
-        "type": "Microsoft.Common.TextBox",
-        "label": "Admin Username",
-        "defaultValue": "",
-        "toolTip": "Username for the Virtual Machine.",
-        "constraints": {
-          "required": true,
-          "regex": "",
-          "validationMessage": ""
-        },
-        "visible": true
-      },
-      {
-        "name": "adminPasswordOrKey",
-        "type": "Microsoft.Common.PasswordBox",
-        "label": {
-          "password": "Admin Password or Key",
-          "confirmPassword": "Confirm Admin Password or Key"
-        },
-        "toolTip": "SSH public key or password for the virtual machine. SSH Public Key is recommended.",
-        "constraints": {
-          "required": true,
-          "regex": "",
-          "validationMessage": ""
+          "required": true
         },
         "options": {
           "hideConfirmation": true
@@ -141,14 +120,21 @@
         "defaultValue": "https://agent-api.refactr.it/v1",
         "toolTip": "Refactr Agent API base URL",
         "constraints": {
-          "required": false,
-          "regex": "",
-          "validationMessage": ""
+          "required": false
         },
         "visible": false
       }
     ],
     "steps": [],
-    "outputs": {}
+    "outputs": {
+      "namePrefix": "[basics('namePrefix')]",
+      "vmSize": "[basics('vmSize')]",
+      "adminUsername": "[basics('adminUsername')]",
+      "authenticationType": "[basics('linuxCredentials').authenticationType]",
+      "adminPasswordOrKey": "[if(equals(basics('linuxCredentials').authenticationType, 'sshPublicKey'), basics('linuxCredentials').sshPublicKey, basics('linuxCredentials').password)]",
+      "agentId": "[basics('agentId')]",
+      "agentKey": "[basics('agentKey')]",
+      "agentApiBaseUrl": "[basics('agentApiBaseUrl')]"
+    }
   }
 }
