@@ -4,6 +4,7 @@ ARG RUNNER_VERSION=latest
 ARG RELEASES_STORAGE=refactrreleases
 ARG PYENV_VERSION_BRANCH=v1.2.26
 ARG PYTHON_VERSION=3.9.4
+ARG REFACTR_CLI_VERSION=v1.1.0
 
 WORKDIR /var/lib/refactr/agent
 
@@ -41,6 +42,14 @@ RUN pip install packaging virtualenv python-daemon
 # https://github.com/pyenv/pyenv/wiki
 RUN dnf install -y @development zlib-devel bzip2-devel readline-devel sqlite \
     sqlite-devel openssl-devel xz xz-devel libffi-devel findutils
+
+# Install Refactr CLI
+RUN mkdir -p /opt/refactrctl && \
+    cd /opt/refactrctl && \
+    curl -L https://github.com/refactr/refactr-cli/releases/download/${REFACTR_CLI_VERSION}/refactr-linux-x64.zip > refactr-linux-x64.zip && \
+    unzip refactr-linux-x64.zip && \
+    rm -f refactr-linux-x64.zip
+RUN ln -fs /opt/refactrctl/refactrctl /usr/local/bin/refactrctl
 
 # Create runtime user
 RUN useradd -U -m refactr-runner -G wheel
