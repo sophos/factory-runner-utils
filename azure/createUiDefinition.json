@@ -20,8 +20,8 @@
         "toolTip": "This value will be used as a base prefix for all resource names, e.g. [namePrefix]-vm.",
         "constraints": {
           "required": true,
-          "regex": "",
-          "validationMessage": ""
+          "regex": "^[a-z0-9A-Z]{1,12}$",
+          "validationMessage": "Must be alphanumeric between 1-12 characters."
         },
         "visible": true
       },
@@ -51,7 +51,7 @@
         "type": "Microsoft.Compute.UserNameTextBox",
         "label": "User Name",
         "defaultValue": "",
-        "toolTip": "",
+        "toolTip": "Admin login username for the virtual machine.",
         "constraints": {
           "required": true,
           "regex": "^[a-z0-9A-Z]{1,30}$",
@@ -63,16 +63,16 @@
       {
         "name": "linuxCredentials",
         "type": "Microsoft.Compute.CredentialsCombo",
+        "toolTip": {
+          "authenticationType": "Authentication type, either password or SSH key.",
+          "password": "The login password of the initial admin user.",
+          "sshPublicKey": "The login SSH public key of the initial admin user."
+        },
         "label": {
           "authenticationType": "Authentication Type",
           "password": "Password",
           "confirmPassword": "Confirm Password",
           "sshPublicKey": "SSH Public Key"
-        },
-        "toolTip": {
-          "authenticationType": "",
-          "password": "",
-          "sshPublicKey": ""
         },
         "constraints": {
           "required": true
@@ -87,13 +87,13 @@
       {
         "name": "agentId",
         "type": "Microsoft.Common.TextBox",
-        "label": "Runner Agent ID",
+        "label": "Agent ID",
         "defaultValue": "",
-        "toolTip": "Refactr Agent ID. This value can be retrieved from the Refactr application.",
+        "toolTip": "Runner Agent ID. This value can be retrieved from the Refactr application.",
         "constraints": {
           "required": true,
-          "regex": "",
-          "validationMessage": ""
+          "regex": "^[a-z0-9A-Z]{24}$",
+          "validationMessage": "Must be alphanumeric, 24 characters. This value is retrieved from the application."
         },
         "visible": true
       },
@@ -101,15 +101,17 @@
         "name": "agentKey",
         "type": "Microsoft.Common.PasswordBox",
         "label": {
-          "password": "Runner Agent Key",
-          "confirmPassword": "Confirm Refactr Agent Key"
+          "password": "Agent Key",
+          "confirmPassword": "Confirm Agent Key"
         },
-        "toolTip": "Refactr Agent Key. This value can be retrieved from the Refactr application.",
+        "toolTip": "Runner Agent Key. This value can be retrieved from the Refactr application.",
         "constraints": {
-          "required": true
+          "required": true,
+          "regex": ".+",
+          "validationMessage": "Should be a string containing alphanumeric and special characters. This value is retrieved from the application."
         },
         "options": {
-          "hideConfirmation": true
+          "hideConfirmation": false
         },
         "visible": true
       },
@@ -120,13 +122,15 @@
         "defaultValue": "https://agent-api.refactr.it/v1",
         "toolTip": "Refactr Agent API base URL",
         "constraints": {
-          "required": false
+          "required": false,
+          "regex": ".+"
         },
         "visible": false
       }
     ],
     "steps": [],
     "outputs": {
+      "location": "[location()]",
       "namePrefix": "[basics('namePrefix')]",
       "vmSize": "[basics('vmSize')]",
       "adminUsername": "[basics('adminUsername')]",
