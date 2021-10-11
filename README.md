@@ -7,7 +7,7 @@ Refactr runners can be deployed in several ways:
 1. As a Docker container
 2. As a virtual machine
 
-#### About this repository
+## About this repository
 
 The following components are provided:
 
@@ -16,14 +16,14 @@ The following components are provided:
 * **Dockerfile**: Clone or fork this repository and edit the Dockerfile to build your own custom Refactr Runner container image.
 * **Install Script**: The install script is used to install the runner on a virtual machine.
 
-#### Installing Docker
+## Installing Docker
 
 Docker is required to build or run the container image.
 
 [Click here for Docker installation instructions.](https://docs.docker.com/get-docker/)
 
 
-#### Creating a runner config file
+## Creating a runner config file
 
 Regardless of the method used, the agent requires a configuration file to start. This file contains the runner authentication details.
 
@@ -42,7 +42,7 @@ The config file should be placed in `/etc/runner-agent.json` on the runner machi
 
 To run the runner container, mounting your config file as a volume, execute the following command:
 
-```
+```sh
 docker run --rm -it --name my-runner -v $(pwd)/config/config.json:/etc/runner-agent.json refactr/runner
 ```
 
@@ -61,32 +61,32 @@ While the Docker runner is quick to get started, sometimes we need a full virtua
 
 1. As a root user, run the following command to download and execute the installation script:
 
-```
+```sh
 curl https://raw.githubusercontent.com/refactr/runner-utils/master/scripts/install-refactr-agent.sh | bash
 ```
 
 2. Create a configuration file (described above) and place it in `/etc/runner-agent.json`:
 
-```
+```sh
 echo $'{\n  "AGENT_ID": "<agent id>",\n  "AGENT_KEY": "<agent key>"\n}' > /etc/runner-agent.json
 ```
 
 3. Enable and start the runner service
 
-```
+```sh
 systemctl enable refactr.agentd
 systemctl start refactr.agentd
 ```
 
 4. Confirm that the service started:
 
-```
+```sh
 systemctl status refactr.agentd
 ```
 
 5. Check the log file to ensure the runner is connected and polling for new runs:
 
-```
+```sh
 journalctl -u refactr.agentd -f
 ```
 
@@ -99,20 +99,20 @@ To build the image:
 
 1. Clone this repository:
 
-```
+```sh
 git clone git@github.com:refactr/runner-utils.git runner-utils
 cd runner-utils
 ```
 
 2. Build the image:
 
-```
+```sh
 docker build -t my-runner .
 ```
 
 3. Run the container (with a config file, described above):
 
-```
+```sh
 docker run --rm -it --name my-runner -v $(pwd)/config/config.json:/etc/runner-agent.json my-runner
 ```
 
@@ -124,3 +124,7 @@ The Docker image and install script do not install all tools necessary to run al
 In most cases, it's recommended to install these extra dependencies as part of your pipelines, however there are some scenarios where it makes sense to preinstall tools when using a self-hosted runner. 
 
 Runners hosted by Refactr provide a larger set of preinstalled packages and additional operating system setup, which allows more supported tools to work out of the box.
+
+## End User License Agreement
+
+Please see [End User License Agreement & Terms of Use](https://www.refactr.it/terms-privacy-security).
