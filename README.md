@@ -1,8 +1,8 @@
-# Refactr Runner Utilities
+# Sophos Factory Runner Utilities
 
-This repository hosts various utilities for executing self-hosted Refactr runner agents.
+This repository hosts various utilities for executing self-hosted Sophos Factory runner agents.
 
-Refactr runners can be deployed in several ways:
+Sophos Factory runners can be deployed in several ways:
 
 1. As a Docker container
 2. As a virtual machine
@@ -13,7 +13,7 @@ The following components are provided:
 
 * **Docker Image**: A prebuilt Docker image is hosted on DockerHub at `refactr/runner`.
   * [Click here to view on DockerHub](https://hub.docker.com/r/refactr/runner)
-* **Dockerfile**: Clone or fork this repository and edit the Dockerfile to build your own custom Refactr Runner container image.
+* **Dockerfile**: Clone or fork this repository and edit the Dockerfile to build your own custom Sophos Factory Runner container image.
 * **Install Script**: The install script is used to install the runner on a virtual machine.
 
 #### Installing Docker
@@ -57,7 +57,7 @@ While the Docker runner is quick to get started, sometimes we need a full virtua
 
 > Note:
 > * The only supported operating system is CentOS 8.
-> * The runner and install script can and will modify your system. It's highly recommended to use dedicated VM instances for Refactr runners. For testing/dev runners, use the Docker image instead.
+> * The runner and install script can and will modify your system. It's highly recommended to use dedicated VM instances for Sophos Factory runners. For testing/dev runners, use the Docker image instead.
 
 1. As a root user, run the following command to download and execute the installation script:
 
@@ -119,8 +119,8 @@ docker run --rm -it --name my-runner -v $(pwd)/config/config.json:/etc/runner-ag
 
 ## About dependencies
 
-The Docker image and install script do not install all tools necessary to run all aspects of every tool supported by the Refactr Platform. For example, many supported tools require extra dependencies to use plugins or modules (e.g., Ansible).
+The Docker image and install script do not install all tools necessary to run all aspects of every tool supported by the Sophos Factory Platform. For example, many supported tools require extra dependencies to use plugins or modules (e.g., Ansible).
 
 In most cases, it's recommended to install these extra dependencies as part of your pipelines, however there are some scenarios where it makes sense to preinstall tools when using a self-hosted runner. 
 
-Runners hosted by Refactr provide a larger set of preinstalled packages and additional operating system setup, which allows more supported tools to work out of the box.
+Runners hosted by Sophos Factory provide a larger set of preinstalled packages and additional operating system setup, which allows more supported tools to work out of the box.

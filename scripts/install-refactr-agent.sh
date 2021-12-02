@@ -1,9 +1,9 @@
 #!/bin/bash
 
 #
-# Refactr runner agent installation script
+# Sophos Factory runner agent installation script
 #
-# **Warning!** This script will modify your system. Only run this on machines dedicated as Refactr runners.
+# **Warning!** This script will modify your system. Only run this on machines dedicated as Sophos Factory runners.
 # For testing/dev runners, use the Docker image instead: https://hub.docker.com/r/refactr/runner
 #
 # To install, run the following as root:
@@ -36,7 +36,7 @@ PYENV_VERSION_BRANCH='v1.2.21'
 function systemd_unit {
 cat <<SYSTEMD
 [Unit]
-Description = Refactr Runner Agent
+Description = Sophos Factory Runner Agent
 After = NetworkManager.service
 
 [Service]
@@ -130,7 +130,7 @@ function setup {
     echo "Creating default config file..."
     setup_config
 
-    echo "Refactr runner agent installed successfully!"
+    echo "Sophos Factory runner agent installed successfully!"
 }
 
 setup

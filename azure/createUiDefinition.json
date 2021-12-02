@@ -89,7 +89,7 @@
         "type": "Microsoft.Common.TextBox",
         "label": "Agent ID",
         "defaultValue": "",
-        "toolTip": "Runner Agent ID. This value can be retrieved from the Refactr application.",
+        "toolTip": "Runner Agent ID. This value can be retrieved from the Sophos Factory application.",
         "constraints": {
           "required": true,
           "regex": "^[a-z0-9A-Z]{24}$",
@@ -104,7 +104,7 @@
           "password": "Agent Key",
           "confirmPassword": "Confirm Agent Key"
         },
-        "toolTip": "Runner Agent Key. This value can be retrieved from the Refactr application.",
+        "toolTip": "Runner Agent Key. This value can be retrieved from the Sophos Factory application.",
         "constraints": {
           "required": true,
           "regex": ".+",
@@ -118,9 +118,9 @@
       {
         "name": "agentApiBaseUrl",
         "type": "Microsoft.Common.TextBox",
-        "label": "Refactr Agent API URL",
+        "label": "Sophos Factory Agent API URL",
         "defaultValue": "https://agent-api.refactr.it/v1",
-        "toolTip": "Refactr Agent API base URL",
+        "toolTip": "Sophos Factory Agent API base URL",
         "constraints": {
           "required": false,
           "regex": ".+"
