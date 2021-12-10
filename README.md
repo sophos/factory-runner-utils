@@ -123,7 +123,7 @@ The Docker image and install script do not install all tools necessary to run al
 
 In most cases, it's recommended to install these extra dependencies as part of your pipelines, however there are some scenarios where it makes sense to preinstall tools when using a self-hosted runner. 
 
-Runners hosted by Refactr provide a larger set of preinstalled packages and additional operating system setup, which allows more supported tools to work out of the box.
+Runners hosted by Sophos Factory provide a larger set of preinstalled packages and additional operating system setup, which allows more supported tools to work out of the box.
 
 
 ## Terms of Use
