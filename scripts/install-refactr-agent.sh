@@ -18,8 +18,7 @@ set -o pipefail
 set -u
 
 RUNNER_VERSION='latest'
-RELEASES_STORAGE='refactrreleases'
-INSTALLER_URL="https://$RELEASES_STORAGE.blob.core.windows.net/public/runner/runner-agent_linux-x64_$RUNNER_VERSION.tgz"
+INSTALLER_URL="https://sfact-releases.s3.us-west-2.amazonaws.com/runner/runner-agent_linux-x64_$RUNNER_VERSION.tgz"
 INSTALLER_TMP_PATH='/tmp/runner-agent_linux-x64.tgz'
 EXE_FILENAME='runner-agent_linux-x64.exe'
 INSTALL_DIR='/var/lib/refactr/agent'
