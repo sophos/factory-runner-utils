@@ -1,6 +1,6 @@
-# Refactr Runner
+# Sophos Factory Runner
 
-This repository hosts a prebuilt Docker image for self-hosted Refactr runners.
+This repository hosts a prebuilt Docker image for self-hosted Sophos Factory runners.
 
 * [Complete self-hosted runner documentation](https://docs.refactr.it/docs/runners/)
 * [GitHub repository with additional utilities](https://github.com/refactr/runner-utils)
