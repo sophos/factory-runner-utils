@@ -19,13 +19,13 @@
     "agentId": {
       "type": "string",
       "metadata": {
-        "description": "Runner Agent ID. This value can be found in the Refactr application."
+        "description": "Runner Agent ID. This value can be found in the Sophos Factory application."
       }
     },
     "agentKey": {
       "type": "securestring",
       "metadata": {
-        "description": "Runner Agent Key. This value can be found in the Refactr application."
+        "description": "Runner Agent Key. This value can be found in the Sophos Factory application."
       }
     },
     "vmSize": {
@@ -62,7 +62,7 @@
       "type": "string",
       "defaultValue": "https://agent-api.refactr.it/v1",
       "metadata": {
-        "description": "Refactr Platform Agent API base URL"
+        "description": "Sophos Factory Platform Agent API base URL"
       }
     }
   },

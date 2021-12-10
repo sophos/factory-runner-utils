@@ -1,7 +1,6 @@
 FROM centos:8
 
 ARG RUNNER_VERSION=latest
-ARG RELEASES_STORAGE=refactrreleases
 ARG PYENV_VERSION_BRANCH=v1.2.26
 ARG PYTHON_VERSION=3.9.4
 
@@ -59,7 +58,7 @@ ENV PATH=$PYTHON_CACHE_PATH/bin:$PATH
 RUN chown -R refactr-runner:refactr-runner /etc/profile.d/001-refactr-path.sh /workspace /cache
 
 # Install runner agent
-RUN curl -o /tmp/runner-agent_linux-x64.tgz https://$RELEASES_STORAGE.blob.core.windows.net/public/runner/runner-agent_linux-x64_$RUNNER_VERSION.tgz
+RUN curl -o /tmp/runner-agent_linux-x64.tgz https://sfact-releases.s3.us-west-2.amazonaws.com/runner/runner-agent_linux-x64_$RUNNER_VERSION.tgz
 RUN tar -xzf /tmp/runner-agent_linux-x64.tgz -C /var/lib/refactr/agent
 RUN chown -R refactr-runner:refactr-runner /var/lib/refactr/agent
 
