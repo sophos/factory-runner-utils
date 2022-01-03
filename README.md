@@ -62,7 +62,7 @@ While the Docker runner is quick to get started, sometimes we need a full virtua
 1. As a root user, run the following command to download and execute the installation script:
 
 ```sh
-curl https://raw.githubusercontent.com/refactr/runner-utils/master/scripts/install-refactr-agent.sh | bash
+curl https://raw.githubusercontent.com/sophos-factory/runner-utils/master/scripts/install-refactr-agent.sh | bash
 ```
 
 2. Create a configuration file (described above) and place it in `/etc/runner-agent.json`:
@@ -100,7 +100,7 @@ To build the image:
 1. Clone this repository:
 
 ```sh
-git clone git@github.com:refactr/runner-utils.git runner-utils
+git clone git@github.com:sophos-factory/runner-utils.git runner-utils
 cd runner-utils
 ```
 
