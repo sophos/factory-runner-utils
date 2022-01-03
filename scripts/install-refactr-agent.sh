@@ -7,7 +7,7 @@
 # For testing/dev runners, use the Docker image instead: https://hub.docker.com/r/refactr/runner
 #
 # To install, run the following as root:
-#   curl https://raw.githubusercontent.com/refactr/runner-utils/master/scripts/install-refactr-agent.sh | bash
+#   curl https://raw.githubusercontent.com/sophos-factory/runner-utils/master/scripts/install-refactr-agent.sh | bash
 #   echo $'{\n  "AGENT_ID": "<agent id>",\n  "AGENT_KEY": "<agent key>"\n}' > /etc/runner-agent.json
 #   systemctl enable refactr.agentd
 #   systemctl start refactr.agentd
