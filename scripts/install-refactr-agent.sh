@@ -51,10 +51,12 @@ function setup_centos8 {
     # Install dnf packages
     # https://github.com/pyenv/pyenv/wiki
     #dnf update -y
-    dnf install -y gcc openssh openssh-clients git ca-certificates wget \
-        unzip which jq python3-pip python3-devel @development zlib-devel \
-        bzip2-devel readline-devel sqlite sqlite-devel openssl-devel xz \
-        xz-devel libffi-devel findutils glibc-locale-source glibc-langpack-en
+    sed -i -e "s|^mirrorlist=|#mirrorlist=|g" -e "s|^#baseurl=|baseurl=|g" -e "s|^baseurl=http://mirror.centos.org|baseurl=http://vault.centos.org|g" /etc/yum.repos.d/CentOS-Linux-* \
+        && dnf upgrade -y
+        && dnf install -y gcc openssh openssh-clients git ca-certificates wget \
+            unzip which jq python3-pip python3-devel @development zlib-devel \
+            bzip2-devel readline-devel sqlite sqlite-devel openssl-devel xz \
+            xz-devel libffi-devel findutils glibc-locale-source glibc-langpack-en
 
     # Updating locales
     localedef -c -f UTF-8 -i en_US en_US.UTF-8

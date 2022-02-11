@@ -1,5 +1,8 @@
 FROM centos:8
 
+RUN sed -i -e "s|^mirrorlist=|#mirrorlist=|g" -e "s|^#baseurl=|baseurl=|g" -e "s|^baseurl=http://mirror.centos.org|baseurl=http://vault.centos.org|g" /etc/yum.repos.d/CentOS-Linux-* &&\
+    yum upgrade -y
+
 ARG RUNNER_VERSION=latest
 ARG PYENV_VERSION_BRANCH=v1.2.26
 ARG PYTHON_VERSION=3.9.4
