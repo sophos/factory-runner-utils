@@ -1,7 +1,6 @@
-FROM centos:8
+FROM quay.io/centos/centos:stream8
 
-RUN sed -i -e "s|^mirrorlist=|#mirrorlist=|g" -e "s|^#baseurl=|baseurl=|g" -e "s|^baseurl=http://mirror.centos.org|baseurl=http://vault.centos.org|g" /etc/yum.repos.d/CentOS-Linux-* &&\
-    yum upgrade -y
+RUN dnf -y update
 
 ARG RUNNER_VERSION=latest
 ARG PYENV_VERSION_BRANCH=v1.2.26
