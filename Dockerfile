@@ -9,7 +9,7 @@ ARG PYTHON_VERSION=3.9.4
 WORKDIR /var/lib/refactr/agent
 
 # Install dnf packages
-#RUN dnf update -y
+RUN dnf upgrade -y
 RUN dnf install -y sudo gcc openssh openssh-clients git ca-certificates wget \
         unzip which jq python3-pip python3-devel @development zlib-devel \
         bzip2-devel readline-devel sqlite sqlite-devel openssl-devel xz \
