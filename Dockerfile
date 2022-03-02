@@ -1,7 +1,6 @@
-FROM centos:8
+FROM quay.io/centos/centos:stream8
 
-RUN sed -i -e "s|^mirrorlist=|#mirrorlist=|g" -e "s|^#baseurl=|baseurl=|g" -e "s|^baseurl=http://mirror.centos.org|baseurl=http://vault.centos.org|g" /etc/yum.repos.d/CentOS-Linux-* &&\
-    yum upgrade -y
+RUN dnf -y update
 
 ARG RUNNER_VERSION=latest
 ARG PYENV_VERSION_BRANCH=v1.2.26
@@ -10,7 +9,7 @@ ARG PYTHON_VERSION=3.9.4
 WORKDIR /var/lib/refactr/agent
 
 # Install dnf packages
-#RUN dnf update -y
+RUN dnf upgrade -y
 RUN dnf install -y sudo gcc openssh openssh-clients git ca-certificates wget \
         unzip which jq python3-pip python3-devel @development zlib-devel \
         bzip2-devel readline-devel sqlite sqlite-devel openssl-devel xz \
