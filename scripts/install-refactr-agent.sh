@@ -72,7 +72,7 @@ function setup_centos8 {
 
     # Install python-build
     if [ ! -d "/opt/pyenv" ]; then
-        git clone --depth 1 --branch $PYENV_VERSION_BRANCH git://github.com/pyenv/pyenv.git --single-branch /opt/pyenv
+        git clone --depth 1 --branch $PYENV_VERSION_BRANCH https://github.com/pyenv/pyenv.git --single-branch /opt/pyenv
         bash -c /opt/pyenv/plugins/python-build/install.sh
     fi
 
