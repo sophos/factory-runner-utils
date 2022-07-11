@@ -30,7 +30,7 @@ RUN alternatives --set python /usr/bin/python3 && \
     ln -sf /usr/bin/pip3 /usr/bin/pip
 
 # Install python-build
-RUN git clone --depth 1 --branch $PYENV_VERSION_BRANCH git://github.com/pyenv/pyenv.git --single-branch
+RUN git clone --depth 1 --branch $PYENV_VERSION_BRANCH https://github.com/pyenv/pyenv.git --single-branch
 RUN bash -c pyenv/plugins/python-build/install.sh
 
 # Install pip packages
