@@ -1,7 +1,9 @@
-# Sophos Factory Runner Utilities
+> **Warning**
+> **This repository has been archived and is no longer supported.**
+> 
+> To create a self-hosted runner, please use the [`refactr/runner` Docker image](https://hub.docker.com/r/refactr/runner) on DockerHub.
 
-> NOTE: This repository has been archived and is no longer supported.
-  To create a self-hosted runner, please, use the Docker image (see [refactr/runner](https://hub.docker.com/r/refactr/runner) on Docker Hub.
+# Sophos Factory Runner Utilities
 
 This repository hosts various utilities for executing self-hosted Sophos Factory runner agents.
 
